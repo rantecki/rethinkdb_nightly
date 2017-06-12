@@ -40,7 +40,7 @@ function log(message, tag) {
  * @param databaseName   The name of the database
  */
 function getArchiveName(databaseName) {
-  return util.format("%s_%s_dump.tar.gz",databaseName, moment().format("YYYY-MM-DD"))
+  return util.format("%s_%s_dump.tar.gz",databaseName, moment().format("YYYY-MM-DD_HH:mm:ss"))
 }
 
 /* removeRF
@@ -188,11 +188,12 @@ function sync(rethinkdbConfig, s3Config, callback) {
 
   async.series([
     async.apply(checkTempDir, tmpDir),
-    async.apply(removeRF, backupDir),
+    //async.apply(removeRF, backupDir),
     async.apply(removeRF, path.join(tmpDir, archiveName)),
     async.apply(dbDump, rethinkdbConfig, tmpDir,archiveName),
     //async.apply(compressDirectory, tmpDir, rethinkdbConfig.db, archiveName),
-    async.apply(sendToS3, s3Config, tmpDir, archiveName)
+    async.apply(sendToS3, s3Config, tmpDir, archiveName),
+    async.apply(removeRF, tmpDir)
   ], function(err) {
     if(err) {
       log(err, 'error');
